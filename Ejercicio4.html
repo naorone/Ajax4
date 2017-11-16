@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script>
+
+        window.onload=init;
+        let directores;
+        let peliculas;
+        function init()
+        {
+            document.getElementById("boton").addEventListener("click",crearSelect)
+
+        }
+
+        function crearSelect()
+        {
+            directores= document.createElement("select");
+            directores.setAttribute("id","directores");
+            let dDefault = document.createElement("option");
+            dDefault.textContent="Seleccionar director";
+
+
+            peliculas= document.createElement("select");
+            peliculas.setAttribute("id","peliculas");
+            let pDefault= document.createElement("option");
+            pDefault.textContent="seleccionar pelicula";
+
+            document.body.appendChild(directores);
+            directores.appendChild(dDefault);
+            document.body.appendChild(peliculas);
+            peliculas.appendChild(pDefault);
+            ajax();
+        }
+
+        function ajax()
+        {
+
+            //event.preventDefault();
+            //target= event.target.id;
+
+            let url ="./peliculas.xml";
+            http = new XMLHttpRequest();
+            http.open("GET", url, true);
+            http.onreadystatechange= leerXML;
+            http.send();
+
+        }
+
+        function leerXML()
+        {
+            if (http.readyState === 4) {
+                // Se ha recibido la respuesta.
+                if (http.status === 200) {
+                    // Aquí escribiremos lo que queremos que
+                    // se ejecute tras recibir la respuesta
+                    let datosDoc = http.responseXML;
+                    let directoresXML= datosDoc.getElementsByTagName("Director");
+
+                    for(let i=0; i < directoresXML.length; i++)
+                    {
+                        crearDirector(directoresXML[i].textContent);
+                    }
+                }else {
+                    // Ha ocurrido un error
+                    alert(
+                        "Error:" + http.statusText);
+                }
+            }
+        }
+
+        function crearDirector(director)
+        {
+            let nuevoDir = document.createElement("option");
+            nuevoDir.textContent=director;
+            nuevoDir.setAttribute("onclick","seleccionado()");
+            directores.appendChild(nuevoDir);
+        }
+
+        function seleccionado()
+        {
+           let sel =directores.selectedIndex.valueOf();
+           leerXML2(directores[sel].textContent);
+
+        }
+
+
+        function leerXML2(direc)
+        {
+            if (http.readyState === 4) {
+                // Se ha recibido la respuesta.
+                if (http.status === 200) {
+                    // Aquí escribiremos lo que queremos que
+                    // se ejecute tras recibir la respuesta
+                    let datosDoc = http.responseXML;
+                    let peliculasXML= datosDoc.getElementsByTagName("Pelicula");
+
+                    borrar();
+                    for(let i=0; i < peliculasXML.length; i++)
+                    {
+                        if(direc===peliculasXML[i].children[0].textContent.trim())
+                        {
+                            crearPelicula(peliculasXML[i].children[1].textContent);
+                           // console.log()
+                        }
+                    }
+                }else {
+                    // Ha ocurrido un error
+                    alert(
+                        "Error:" + http.statusText);
+                }
+            }
+        }
+
+        function crearPelicula(peli)
+        {
+            let nuevaPel = document.createElement("option");
+            nuevaPel.textContent=peli;
+            nuevaPel.setAttribute("onclick","sinopsis()");
+            peliculas.appendChild(nuevaPel);
+        }
+
+        function borrar()
+        {
+            if ( peliculas.hasChildNodes() )
+            {
+                while (peliculas.childNodes.length >= 2) {
+                    peliculas.removeChild(peliculas[1]);
+                }
+            }
+        }
+
+        function sinopsis()
+        {
+
+        }
+
+    </script>
+
+</head>
+<body>
+
+<input type="submit" id="boton" value="Datos">
+<p id="parrafo"></p>
+</body>
+</html>
