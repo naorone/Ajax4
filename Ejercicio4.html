@@ -9,6 +9,9 @@
         window.onload=init;
         let directores;
         let peliculas;
+        let http;
+        let http2;
+        let creado=false;
         function init()
         {
             document.getElementById("boton").addEventListener("click",crearSelect)
@@ -17,29 +20,35 @@
 
         function crearSelect()
         {
-            directores= document.createElement("select");
-            directores.setAttribute("id","directores");
-            let dDefault = document.createElement("option");
-            dDefault.textContent="Seleccionar director";
+            if(!creado)
+            {
+                directores= document.createElement("select");
+                directores.setAttribute("id","directores");
+                let dDefault = document.createElement("option");
+                dDefault.textContent="Seleccionar director";
+                dDefault.setAttribute("onclick","seleccionado()");
 
 
-            peliculas= document.createElement("select");
-            peliculas.setAttribute("id","peliculas");
-            let pDefault= document.createElement("option");
-            pDefault.textContent="seleccionar pelicula";
+                peliculas= document.createElement("select");
+                peliculas.setAttribute("id","peliculas");
+                let pDefault= document.createElement("option");
+                pDefault.textContent="seleccionar pelicula";
+                pDefault.setAttribute("onclick","limpiar()");
 
-            document.body.appendChild(directores);
-            directores.appendChild(dDefault);
-            document.body.appendChild(peliculas);
-            peliculas.appendChild(pDefault);
-            ajax();
+                let div= document.getElementById("selects");
+                div.appendChild(directores);
+                directores.appendChild(dDefault);
+                div.appendChild(peliculas);
+                peliculas.appendChild(pDefault);
+                ajax();
+                creado=true;
+            }
+
+
         }
 
         function ajax()
         {
-
-            //event.preventDefault();
-            //target= event.target.id;
 
             let url ="./peliculas.xml";
             http = new XMLHttpRequest();
@@ -48,6 +57,7 @@
             http.send();
 
         }
+
 
         function leerXML()
         {
@@ -81,13 +91,13 @@
 
         function seleccionado()
         {
+           limpiar();
            let sel =directores.selectedIndex.valueOf();
-           leerXML2(directores[sel].textContent);
-
+           leerXMLPelis(directores[sel].textContent);
         }
 
 
-        function leerXML2(direc)
+        function leerXMLPelis(direc)
         {
             if (http.readyState === 4) {
                 // Se ha recibido la respuesta.
@@ -103,7 +113,7 @@
                         if(direc===peliculasXML[i].children[0].textContent.trim())
                         {
                             crearPelicula(peliculasXML[i].children[1].textContent);
-                           // console.log()
+
                         }
                     }
                 }else {
@@ -118,7 +128,7 @@
         {
             let nuevaPel = document.createElement("option");
             nuevaPel.textContent=peli;
-            nuevaPel.setAttribute("onclick","sinopsis()");
+            nuevaPel.setAttribute("onclick","ajaxSinopsis()");
             peliculas.appendChild(nuevaPel);
         }
 
@@ -126,23 +136,65 @@
         {
             if ( peliculas.hasChildNodes() )
             {
-                while (peliculas.childNodes.length >= 2) {
+                while (peliculas.childNodes.length > 1) {
                     peliculas.removeChild(peliculas[1]);
                 }
             }
         }
 
-        function sinopsis()
+
+        function ajaxSinopsis()
         {
+            let sel =peliculas.selectedIndex.valueOf();
+            let peliculaSeleccionada= peliculas[sel].textContent;
+            let charArray = peliculaSeleccionada.split(" ");
+            let sinEspacios="";
+            for(i=0; i<charArray.length; i++)
+            {
+                sinEspacios+=charArray[i];
+            }
+
+            let url ="./"+sinEspacios.trim().toLowerCase()+".txt";
+            http2 = new XMLHttpRequest();
+            http2.open("GET", url, true);
+            http2.onreadystatechange= leerSinopsis;
+            http2.send();
 
         }
 
+
+
+        function leerSinopsis()
+        {
+            if (http2.readyState === 4) {
+                // Se ha recibido la respuesta.
+                if (http2.status === 200) {
+                    // Aquí escribiremos lo que queremos que
+                    // se ejecute tras recibir la respuesta
+                    let datosSinopsis = http2.responseText;
+                    document.getElementById("parrafo").textContent=datosSinopsis;
+
+                }else {
+                    // Ha ocurrido un error
+                    alert(
+                        "Error:" + http.statusText);
+                }
+            }
+        }
+
+        function limpiar()
+        {
+            document.getElementById("parrafo").textContent="";
+        }
     </script>
 
 </head>
 <body>
 
 <input type="submit" id="boton" value="Datos">
+<div id="selects">
+
+</div>
 <p id="parrafo"></p>
 </body>
 </html>
