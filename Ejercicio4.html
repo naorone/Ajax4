@@ -24,16 +24,18 @@
             {
                 directores= document.createElement("select");
                 directores.setAttribute("id","directores");
+                directores.addEventListener("change",seleccionado);
                 let dDefault = document.createElement("option");
                 dDefault.textContent="Seleccionar director";
-                dDefault.setAttribute("onclick","seleccionado()");
+                //dDefault.setAttribute("onclick","seleccionado()");
 
 
                 peliculas= document.createElement("select");
                 peliculas.setAttribute("id","peliculas");
+                peliculas.addEventListener("change",ajaxSinopsis);
                 let pDefault= document.createElement("option");
                 pDefault.textContent="seleccionar pelicula";
-                pDefault.setAttribute("onclick","limpiar()");
+                //pDefault.setAttribute("onclick","limpiar()");
 
                 let div= document.getElementById("selects");
                 div.appendChild(directores);
@@ -71,7 +73,20 @@
 
                     for(let i=0; i < directoresXML.length; i++)
                     {
-                        crearDirector(directoresXML[i].textContent);
+
+                        if(directores[i].textContent!==directoresXML[i].textContent)
+                        {
+                            console.log(directores[i].textContent+" -> "+directoresXML[i].textContent);
+                            crearDirector(directoresXML[i].textContent);
+                        }else {
+                            if(i === directoresXML.length){
+                                return;
+                            }
+                            let f= i+1;
+                            console.log(directoresXML[f].textContent);
+                            crearDirector(directoresXML[f+1].textContent);
+                        }
+
                     }
                 }else {
                     // Ha ocurrido un error
@@ -85,7 +100,7 @@
         {
             let nuevoDir = document.createElement("option");
             nuevoDir.textContent=director;
-            nuevoDir.setAttribute("onclick","seleccionado()");
+            //nuevoDir.setAttribute("onclick","seleccionado()");
             directores.appendChild(nuevoDir);
         }
 
@@ -128,7 +143,7 @@
         {
             let nuevaPel = document.createElement("option");
             nuevaPel.textContent=peli;
-            nuevaPel.setAttribute("onclick","ajaxSinopsis()");
+            //nuevaPel.setAttribute("onclick","ajaxSinopsis()");
             peliculas.appendChild(nuevaPel);
         }
 
@@ -154,11 +169,18 @@
                 sinEspacios+=charArray[i];
             }
 
-            let url ="./"+sinEspacios.trim().toLowerCase()+".txt";
-            http2 = new XMLHttpRequest();
-            http2.open("GET", url, true);
-            http2.onreadystatechange= leerSinopsis;
-            http2.send();
+            if(sinEspacios!=="seleccionarpelicula")
+            {
+                let url ="./"+sinEspacios.trim().toLowerCase()+".txt";
+                http2 = new XMLHttpRequest();
+                http2.open("GET", url, true);
+                http2.onreadystatechange= leerSinopsis;
+                http2.send();
+            }else{
+                limpiar();
+            }
+
+
 
         }
 
